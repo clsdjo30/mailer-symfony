@@ -1,0 +1,51 @@
+name: CI Symfony
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: symfony_test
+          MYSQL_USER: symfony
+          MYSQL_PASSWORD: symfony
+        ports:
+          - 3307:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: 📥 Checkout du code
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Installer PHP et extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, pdo, pdo_mysql, intl
+          coverage: none
+
+      - name: 🏗️ Installer les dépendances Composer
+        run: composer install --no-interaction --prefer-dist
+
+      - name: 🔧 Configurer le fichier .env.test
+        run: |
+          cp .env .env.test
+          echo "DATABASE_URL=mysql://symfony:symfony@127.0.0.1:3307/symfony_test" >> .env.test
+
+      - name: 🔍 Vérifier la qualité du code avec PHPStan
+        run: vendor/bin/phpstan analyse src --level=5
+
+      - name: 🛠️ Lancer les migrations de test
+        run: php bin/console doctrine:migrations:migrate --env=test --no-interaction
+
+      - name: 🧪 Lancer les tests PHPUnit
+        run: php bin/phpunit --testdox
