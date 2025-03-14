@@ -41,11 +41,11 @@ jobs:
           cp .env .env.test
           echo "DATABASE_URL=mysql://symfony:symfony@127.0.0.1:3307/symfony_test" >> .env.test
 
-      - name: 🔍 Vérifier la qualité du code avec PHPStan
-        run: vendor/bin/phpstan analyse src --level=5
-
       - name: 🛠️ Lancer les migrations de test
         run: php bin/console doctrine:migrations:migrate --env=test --no-interaction
+
+      - name: 🔍 Vérifier la qualité du code avec PHPStan
+        run: vendor/bin/phpstan analyse src --level=5
 
       - name: 🧪 Lancer les tests PHPUnit
         run: php bin/phpunit --testdox
