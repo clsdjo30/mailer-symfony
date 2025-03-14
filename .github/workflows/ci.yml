@@ -39,7 +39,11 @@ jobs:
       - name: 🔧 Configurer le fichier .env.test
         run: |
           cp .env .env.test
-          echo "DATABASE_URL=mysql://symfony:symfony@127.0.0.1:3307/symfony_test" >> .env.test
+          echo "DATABASE_URL=mysql://symfony:symfony@127.0.0.1:3307/symfony" >> .env.test
+
+      - name: 🔍 Vérifier MySQL
+        run: |
+          mysql -h 127.0.0.1 -P 3307 -u symfony -psymfony -e "SHOW DATABASES;"
 
       - name: 🛠️ Lancer les migrations de test
         run: php bin/console doctrine:migrations:migrate --env=test --no-interaction
